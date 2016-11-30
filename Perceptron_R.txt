@@ -1,0 +1,156 @@
+##Perceptron in R##
+
+############## Teil 1: Data #############################################################
+#R code to generate data separated by: X_2 = X_1 + 1/2
+
+############## Teil 1 (a): Algorithmus #############################
+ x1 <- runif(30,-1,1)
+ x2 <- runif(30,-1,1)
+ x <- cbind(x1,x2)
+ Y <- ifelse(x2>0.5+x1,+1,-1)
+ 
+############## Teil 1 (b): Plot  ###################### 
+ plot(x,pch=ifelse(Y>0,"+","-"),
+ xlim=c(-1,1),ylim=c(-1,1),cex=2)
+ abline(0.5,1)
+ points(c(0,0),c(0,0),pch=19)
+ lines(c(0,-0.25),c(0,0.25),lty=2)
+ arrows(-0.3,0.2,-0.4,0.3)
+ text(-0.45,0.35,"w",cex=2)
+ text(-0.0,0.15,"b",cex=2)
+
+
+############## Teil 2: Classes #############################################################
+# R code for predicting class
+
+ distance.from.plane = function(z,w,b) {
+ sum(z*w) + b
+ }
+ classify.linear = function(x,w,b) {
+ distances =
+ apply(x, 1, distance.from.plane, w, b)
+ return(ifelse(distances < 0, -1, +1))
+ }
+
+############## Teil 3: Test Classes #############################################################
+# trying it out on our sample data
+
+############## Teil 3 (a): Classes ############################
+classify.linear(x,c(-1,1)/sqrt(2),-sqrt(2)/4)
+
+############## Teil 3 (b): Output #############################
+Y
+ 
+
+############## Teil 4: Perceptron ################################################################ 
+# full perceptron code
+
+ euclidean.norm = function(x) {sqrt(sum(x * x))}
+ perceptron = function(x, y, learning.rate=1) {
+ w = vector(length = ncol(x)) # initialize w
+ b = 0 # Initialize b
+ k = 0 # count updates
+ R = max(apply(x, 1, euclidean.norm))
+ made.mistake = TRUE # to enter the while loop
+ while (made.mistake) {
+ made.mistake=FALSE # hopefully
+ yc <- classify.linear(x,w,b)
+ for (i in 1:nrow(x)) {
+ if (y[i] != yc[i]) {
+ w <- w + learning.rate * y[i]*x[i,]
+ b <- b + learning.rate * y[i]*R^2
+ k <- k+1
+ made.mistake=TRUE
+ }
+ } }
+ s = euclidean.norm(w)
+ return(list(w=w/s,b=b/s,updates=k))
+ }
+ 
+############## Teil 5: Test Perceptron ################################################################ 
+#testing the peceptron code
+
+############## Teil 5 (a): Error-Calculation ############################
+ (p <- perceptron(x,Y))
+ y <- classify.linear(x,p$w,p$b)
+ sum(abs(Y-y))
+ 
+############## Teil 5 (b): Plot ############################ 
+ plot(x,cex=0.2)
+ points(subset(x,Y==1),col="black",pch="+",cex=2)
+ points(subset(x,Y==-1),col="red",pch="-",cex=2)
+ # compute intercept on y axis of separator from w and b
+ intercept <- - p$b / p$w[[2]]
+ # compute slope of separator from w
+ slope <- - p$w[[1]] /p$ w[[2]]
+ # draw separating boundary
+  abline(intercept,slope,col="red")
+ abline(0.5,1, col="blue")
+
+ 
+############## Teil 6: Test Example Data Set Iris ################################################################ 
+
+############## Teil 6 (a): Basic Information on Dataset ############################ 
+# example data set: iris
+
+ data(iris)
+ dim(iris) # 150 measurements of 5 attributes
+ names(iris)
+
+############## Teil 6 (b): Species ############################ 
+# target attribute: Species
+
+ summary(iris$Species)
+
+############## Teil 6 (c): Plots ############################  
+# iris scatter plots
+ 
+ data(iris)
+ pairs(iris[,1:4], col=iris$Species)
+
+ 
+############## Teil 7: Separable Set ################################################################ 
+ 
+# find one bivariate plot with one separable species
+
+############## Teil 7 (a): Search ############################
+
+ # select the Sepal.Width versus Petal.Width scatter
+ x <- cbind(iris$Sepal.Width,iris$Petal.Width)
+ # label setosa as positive and the rest as negative
+ Y <- ifelse(iris$Species == "setosa", +1, -1)
+ #
+ ############## Teil 7 (b): Plot ############################
+ # plot all the points
+ plot(x,cex=0.2)
+ # use plus sign for setosa points
+ points(subset(x,Y==1),col="black",pch="+",cex=2)
+ # use minus sign for the rest
+ points(subset(x,Y==-1),col="red",pch="-",cex=2)
+ # setosa is separable
+
+ 
+############## Teil 8: Train Perceptron ################################################################ 
+ 
+ ############## Teil 8 (a): Train ############################ 
+# train our perceptron
+
+ ( p <- perceptron(x,Y) )
+ sum(abs(classify.linear(x,p$w,p$b) - Y))
+ 
+ ############## Teil 8 (b): Plot ############################
+ 
+# replot and view the separation boundary
+
+ plot(x,cex=0.2)
+ points(subset(x,Y==1),col="black",pch="+",cex=2)
+ points(subset(x,Y==-1),col="red",pch="-",cex=2)
+ # compute intercept on y axis of separator from w and b
+ intercept <- - p$b / p$w[[2]]
+ # compute slope of separator from w
+ slope <- - p$w[[1]] /p$ w[[2]]
+ # draw separating boundary
+ abline(intercept,slope,col="green")
+ 
+ 
+ ###############################################
